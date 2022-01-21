@@ -1,55 +1,26 @@
------------------------------------
+## raylib 5K Game Jam
 
-_DISCLAIMER:_
-
-Welcome to **raylib game template**!
-
-This template provides a base structure to start developing a small raylib game in plain C. The repo is also pre-configured with a default `LICENSE` (zlib/libpng) and a `README.md` (this one) to be properly filled by users. Feel free to change the LICENSE as required.
-
-All the sections defined by `$(Data to Fill)` are expected to be edited and filled properly. It's recommended to delete this disclaimer message after editing this `README.md` file.
-
-This template has been created to be used with raylib (www.raylib.com) and it's licensed under an unmodified zlib/libpng license.
-
-_Copyright (c) 2014-2022 Ramon Santamaria ([@raysan5](https://twitter.com/raysan5))_
-
------------------------------------
-
-## $(Game Title)
-
+_TODO: Add a logo lmao
 ![$(Game Title)](screenshots/screenshot000.png "$(Game Title)")
 
 ### Description
 
-$(Your Game Description)
+This repo is my submission and record of participation in the raylib communities first ever official game jam! Aside from comments in commits, also check out the planning doc I used throughout the project to get some insight into how much planning I actually do before most of the coding! Judging by how I usually do these, I anticipate the doc will be missing a LOT of content (but that's part of the fun!).
 
-### Features
+The theme for the Jam was announced to be "", and I immediately knew where I wanted to go with this. Hopefully it ended up working out half as good as I pictured it.
 
- - $(Game Feature 01)
- - $(Game Feature 02)
- - $(Game Feature 03)
+### Section
 
-### Controls
-
-Keyboard:
- - $(Game Control 01)
- - $(Game Control 02)
- - $(Game Control 03)
+Section body
 
 ### Screenshots
 
 _TODO: Show your game to the world, animated GIFs recommended!._
 
-### Developers
-
- - $(Developer 01) - $(Role/Tasks Developed)
- - $(Developer 02) - $(Role/Tasks Developed)
- - $(Developer 03) - $(Role/Tasks Developed)
-
 ### Links
 
  - YouTube Gameplay: $(YouTube Link)
  - itch.io Release: $(itch.io Game Page)
- - Steam Release: $(Steam Game Page)
 
 ### License
 
@@ -57,4 +28,4 @@ This game sources are licensed under an unmodified zlib/libpng license, which is
 
 $(Additional Licenses)
 
-*Copyright (c) $(Year) $(User Name) ($(User Twitter/GitHub Name))*
+*Copyright (c) 2022 Andrew Hamel (http://www.andrewhamel.ca)*
