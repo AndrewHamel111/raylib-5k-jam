@@ -5,7 +5,7 @@ _TODO: Add a logo lmao
 
 ### Description
 
-This repo is my submission and record of participation in the raylib communities first ever official game jam! Aside from comments in commits, also check out the planning doc I used throughout the project to get some insight into how much planning I actually do before most of the coding! Judging by how I usually do these, I anticipate the doc will be missing a LOT of content (but that's part of the fun!).
+This repo is my submission and record of participation in the raylib communities first ever official game jam! Aside from comments in commits, also check out the [planning doc](https://docs.google.com/document/d/1wMqDdxyBlYpWal1arvJtq8_g9cMjlqvOn3trgVUHM9Y/edit?usp=sharing) I used throughout the project to get some insight into how much planning I actually do before most of the coding! Judging by how I usually do these, I anticipate the doc will be missing a LOT of content (but that's part of the fun!).
 
 The theme for the Jam was announced to be "", and I immediately knew where I wanted to go with this. Hopefully it ended up working out half as good as I pictured it.
 
