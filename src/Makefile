@@ -26,14 +26,15 @@
 # Define required environment variables
 #------------------------------------------------------------------------------------------------
 # Define target platform: PLATFORM_DESKTOP, PLATFORM_RPI, PLATFORM_DRM, PLATFORM_ANDROID, PLATFORM_WEB
-PLATFORM              ?= PLATFORM_DESKTOP
+PLATFORM              ?= PLATFORM_WEB
 
 # Define project variables
 PROJECT_NAME          ?= raylib_game
 PROJECT_VERSION       ?= 1.0
-PROJECT_BUILD_PATH    ?= .
+PROJECT_BUILD_PATH    ?= ../build
 
-RAYLIB_PATH           ?= ../../raylib
+RAYLIB_PATH           ?= C:/raylib/raylib
+HAMLIB_PATH			  ?= ./hamlib
 
 # Locations of raylib.h and libraylib.a/libraylib.so
 # NOTE: Those variables are only used for PLATFORM_OS: LINUX, BSD
@@ -229,6 +230,7 @@ endif
 # NOTE: Some external/extras libraries could be required (stb, physac, easings...)
 #------------------------------------------------------------------------------------------------
 INCLUDE_PATHS = -I. -I$(RAYLIB_PATH)/src -I$(RAYLIB_PATH)/src/external -I$(RAYLIB_PATH)/src/extras
+INCLUDE_PATHS += -I$(HAMLIB_PATH)/include
 
 # Define additional directories containing required header files
 ifeq ($(PLATFORM),PLATFORM_DESKTOP)
@@ -251,6 +253,7 @@ endif
 # Define library paths containing required libs: LDFLAGS
 #------------------------------------------------------------------------------------------------
 LDFLAGS = -L. -L$(RAYLIB_RELEASE_PATH) -L$(RAYLIB_PATH)/src
+LDFLAGS += -L$(HAMLIB_PATH)
 
 ifeq ($(PLATFORM),PLATFORM_DESKTOP)
     ifeq ($(PLATFORM_OS),WINDOWS)
@@ -370,6 +373,8 @@ ifeq ($(PLATFORM),PLATFORM_WEB)
     LDLIBS = $(RAYLIB_RELEASE_PATH)/libraylib.a
 endif
 
+LDLIBS += -lhamlib
+
 # Define source code object files required
 #------------------------------------------------------------------------------------------------
 PROJECT_SOURCE_FILES ?= \
@@ -402,7 +407,7 @@ all:
 
 # Project target defined by PROJECT_NAME
 $(PROJECT_NAME): $(OBJS)
-	$(CC) -o $(PROJECT_NAME)$(EXT) $(OBJS) $(CFLAGS) $(INCLUDE_PATHS) $(LDFLAGS) $(LDLIBS) -D$(PLATFORM)
+	$(CC) -o $(PROJECT_BUILD_PATH)/$(PROJECT_NAME)$(EXT) $(OBJS) $(CFLAGS) $(INCLUDE_PATHS) $(LDFLAGS) $(LDLIBS) -D$(PLATFORM)
 
 # Compile source files
 # NOTE: This pattern will compile every module defined on $(OBJS)

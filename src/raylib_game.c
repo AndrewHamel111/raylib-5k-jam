@@ -15,9 +15,8 @@
 #include "raylib.h"
 #include "screens.h"    // NOTE: Declares global (extern) variables and screens functions
 
-#if defined(PLATFORM_WEB)
-    #include <emscripten/emscripten.h>
-#endif
+#include <emscripten/emscripten.h>
+#include "hamlib.h"
 
 //----------------------------------------------------------------------------------
 // Shared Variables Definition (global)
@@ -31,8 +30,8 @@ Sound fxCoin = { 0 };
 //----------------------------------------------------------------------------------
 // Local Variables Definition (local to this module)
 //----------------------------------------------------------------------------------
-static const int screenWidth = 800;
-static const int screenHeight = 450;
+static const int screenWidth = 900;
+static const int screenHeight = 675;
 
 // Required variables to manage screen transitions (fade-in, fade-out)
 static float transAlpha = 0.0f;
@@ -75,18 +74,7 @@ int main(void)
     currentScreen = LOGO;
     InitLogoScreen();
 
-#if defined(PLATFORM_WEB)
     emscripten_set_main_loop(UpdateDrawFrame, 60, 1);
-#else
-    SetTargetFPS(60);       // Set our game to run at 60 frames-per-second
-    //--------------------------------------------------------------------------------------
-
-    // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
-    {
-        UpdateDrawFrame();
-    }
-#endif
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
