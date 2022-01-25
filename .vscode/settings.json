@@ -1,5 +1,6 @@
 {
 	"files.associations": {
-		"hamlib.h": "c"
+		"hamlib.h": "c",
+		"*.inc": "c"
 	}
 }

@@ -21,7 +21,7 @@
 
 #include "player.h"
 #include "colors.h"
-
+#include "buttons.h"
 
 //----------------------------------------------------------------------------------
 // Global Variables Definition
@@ -37,6 +37,7 @@ Sound fxCoin = { 0 };
 float frametime = 0.0f;
 player __player = { {0}, {0}, {0}};
 Color colors[5] = { {0}, {0}, {0}, {0}, {0} };
+bool mute;
 
 //----------------------------------------------------------------------------------
 // Resources
@@ -92,6 +93,15 @@ int main(void)
 // Update and draw game frame
 static void UpdateDrawFrame(void)
 {
+	if (mute)
+	{
+		SetMusicVolume(music, 0.0f);
+	}
+	else
+	{
+		SetMusicVolume(music, 1.0f);
+	}
+
     // Update
     //----------------------------------------------------------------------------------
     UpdateMusicStream(music);
@@ -110,6 +120,9 @@ static void UpdateDrawFrame(void)
 		DrawEnvironment();
 
 		DrawPlayer();
+
+		if(Button((Rectangle){screenWidth - 190, screenHeight - 90, 180, 80}, colors[2], "MUTE"))
+			mute = !mute;
 
     EndDrawing();
     //----------------------------------------------------------------------------------
