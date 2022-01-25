@@ -16,9 +16,12 @@
 ********************************************************************************************/
 
 #include "raylib.h"
+#include "raymath.h"
 #include <emscripten/emscripten.h>
 
-#include "hamlib.h"
+#include "player.h"
+#include "colors.h"
+
 
 //----------------------------------------------------------------------------------
 // Global Variables Definition
@@ -31,6 +34,9 @@ const int screenHeight = 675;
 Font font = { 0 };
 Music music = { 0 };
 Sound fxCoin = { 0 };
+float frametime = 0.0f;
+player __player = { {0}, {0}, {0}};
+Color colors[5] = { {0}, {0}, {0}, {0}, {0} };
 
 //----------------------------------------------------------------------------------
 // Resources
@@ -47,6 +53,10 @@ static void UpdateDrawFrame(void);          // Update and draw one frame
 static void LoadResources(void);
 static void UnloadResources(void);
 
+static void DrawEnvironment(void);
+
+static void InitGame(void);
+
 int main(void)
 {
     // Initialization
@@ -57,6 +67,9 @@ int main(void)
 
 	LoadResources();
 
+	InitGame();
+
+	music = bgm[1];
     SetMusicVolume(music, 1.0f);
     PlayMusicStream(music);
 
@@ -82,12 +95,21 @@ static void UpdateDrawFrame(void)
     // Update
     //----------------------------------------------------------------------------------
     UpdateMusicStream(music);
+	frametime = GetFrameTime();
+	UpdatePlayer();
+
+	if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
+		SetPlayerDestination(GetMousePosition());
 
     // Draw
     //----------------------------------------------------------------------------------
     BeginDrawing();
 
-        ClearBackground(RAYWHITE);
+        ClearBackground(colors[4]);
+
+		DrawEnvironment();
+
+		DrawPlayer();
 
     EndDrawing();
     //----------------------------------------------------------------------------------
@@ -105,6 +127,9 @@ static void LoadResources(void)
 	bgm[2] = LoadMusicStream("resources/dontcrash.ogg");
 	bgm[3] = LoadMusicStream("resources/evader.ogg");
 	bgm[4] = LoadMusicStream("resources/techbg.ogg");
+
+	// other intialization
+	SetColorPalette(0);
 }
 
 static void UnloadResources(void)
@@ -115,4 +140,17 @@ static void UnloadResources(void)
 
 	for(int i = 0; i < 5; i++)
 		UnloadMusicStream(bgm[i]);
+}
+
+static void DrawEnvironment(void)
+{
+	DrawRectangle(0,0,screenWidth, 100, colors[0]);
+	DrawRectangle(0,screenHeight-100,screenWidth, 100, colors[0]);
+}
+
+static void InitGame(void)
+{
+	__player.position = (Vector2){screenWidth/2, screenHeight/2};
+	__player.velocity = Vector2Zero();
+	__player.destination = __player.position;
 }
