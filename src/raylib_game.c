@@ -31,13 +31,11 @@ const int screenWidth = 900;
 const int screenHeight = 675;
 
 // Variable
-Font font = { 0 };
 Music music = { 0 };
-Sound fxCoin = { 0 };
 float frametime = 0.0f;
-player __player = { {0}, {0}, {0}};
+player __player = {0};
 Color colors[5] = { {0}, {0}, {0}, {0}, {0} };
-bool mute;
+bool mute = true;
 
 //----------------------------------------------------------------------------------
 // Resources
@@ -108,8 +106,16 @@ static void UpdateDrawFrame(void)
 	frametime = GetFrameTime();
 	UpdatePlayer();
 
-	if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
-		SetPlayerDestination(GetMousePosition());
+	Vector2 dest = GetMousePosition();
+	if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+		SetPlayerDestination(dest);
+	else if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
+	{
+		if (!CheckCollisionPointCircle(dest, __player.next, PLAYER_RADIUS))
+		{
+			SetPlayerDestination(dest);
+		}
+	}
 
     // Draw
     //----------------------------------------------------------------------------------
@@ -121,6 +127,8 @@ static void UpdateDrawFrame(void)
 
 		DrawPlayer();
 
+		DrawText(TextFormat("x %.1f y %.1f _x %.1f _y %.1f", __player.last.x, __player.last.y, __player.next.x, __player.last.y), 10, 10, 20, BLACK);
+
 		if(Button((Rectangle){screenWidth - 190, screenHeight - 90, 180, 80}, colors[2], "MUTE"))
 			mute = !mute;
 
@@ -131,9 +139,7 @@ static void UpdateDrawFrame(void)
 static void LoadResources(void)
 {
     // Load global data (assets that must be available in all screens, i.e. font)
-    font = LoadFont("resources/mecha.png");
     music = LoadMusicStream("resources/ambient.ogg");
-    fxCoin = LoadSound("resources/coin.wav");
 
 	bgm[0] = LoadMusicStream("resources/nightclub.ogg");
 	bgm[1] = LoadMusicStream("resources/town.ogg");
@@ -147,9 +153,7 @@ static void LoadResources(void)
 
 static void UnloadResources(void)
 {
-    UnloadFont(font);
     UnloadMusicStream(music);
-    UnloadSound(fxCoin);
 
 	for(int i = 0; i < 5; i++)
 		UnloadMusicStream(bgm[i]);
@@ -163,7 +167,7 @@ static void DrawEnvironment(void)
 
 static void InitGame(void)
 {
-	__player.position = (Vector2){screenWidth/2, screenHeight/2};
-	__player.velocity = Vector2Zero();
-	__player.destination = __player.position;
+	InitPlayer((Vector2){screenWidth/2, screenHeight/2});
+
+
 }

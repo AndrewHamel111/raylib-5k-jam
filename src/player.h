@@ -3,34 +3,30 @@
 
 #include "raylib.h"
 
-/**
- * \brief Rate of acceleration for player
- */
-#define PLAYER_ACC 150
-/**
- * \brief Maximum distance from which player will snap to it's destination
- */
-#define PLAYER_SNAP_DISTANCE 20
-/**
- * \brief Player must be moving slower than this to snap to it's destination.
- */
-#define PLAYER_SNAP_SPEED 40
-/**
- * \brief Radius of player circle, for both collision and drawing
- */
+/** \brief Speed of player */
+#define PLAYER_SPEED 1000
+/** \brief Radius of player circle, for both collision and drawing */
 #define PLAYER_RADIUS 30
 
 typedef struct player
 {
+	/** Player's current pos */
 	Vector2 position;
-	Vector2 velocity;
+	/** Player's last destination (starting point of easing) */
+	Vector2 last;
+	/** Player's current destination (ending point of easing) */
+	Vector2 next;
 
-	Vector2 destination;
+	/** \brief (Vector2){start_time, end_time} */
+	Vector2 next_time;
+	
+	bool moving;
 } player;
 
 void SetPlayerDestination(Vector2 dest);
 
-void UpdatePlayer();
-void DrawPlayer();
+void InitPlayer(Vector2);
+void UpdatePlayer(void);
+void DrawPlayer(void);
 
 #endif

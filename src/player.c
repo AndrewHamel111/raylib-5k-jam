@@ -1,5 +1,6 @@
 #include "player.h"
 
+#include "easings.h"
 #include "raymath.h"
 #include <stdio.h> // DEBUG
 
@@ -36,32 +37,43 @@ void SetPlayerDestination(Vector2 dest)
 	if(!CheckCollisionPointRec(dest, (Rectangle){0,0,GetScreenWidth(),GetScreenHeight()}))
 		printf("Tried to set dest outside of screen space.");
 	else
-		__player.destination = dest;
+	{
+		__player.last = __player.position;
+		__player.next = dest;
+
+		float length = Vector2Length(Vector2Subtract(__player.next, __player.last));
+		if (length < 10) return;
+
+		__player.next_time = (Vector2){GetTime(), length/PLAYER_SPEED};
+		__player.moving = true;
+	}
 }
 
-void UpdatePlayer()
+void InitPlayer(Vector2 pos)
 {
-	// apply acceleration, as needed
-	__player.velocity = Vector2Add(__player.velocity, 
-		Vector2Scale(Vector2Normalize(Vector2Subtract(__player.destination, __player.position)), PLAYER_ACC * frametime)
-	);
+	__player.position = pos;
+	__player.last = __player.next = __player.position;
+	__player.next_time = (Vector2){0,0};
+	__player.moving = false;
+}
 
-	// if the players current position OR next position is close enough to the destination that it should snap to it, do so. This resets the player's velocity as well
-	if ( (CheckCollisionPointCircle(__player.position, __player.destination, PLAYER_SNAP_DISTANCE)
-		|| CheckCollisionPointCircle(Vector2Add(__player.position, __player.velocity), __player.destination, PLAYER_SNAP_DISTANCE)) && (Vector2Length(__player.velocity) < PLAYER_SNAP_SPEED)
-	)
+void UpdatePlayer(void)
+{
+	if (__player.moving)
 	{
-		__player.position = __player.destination;
-		__player.velocity = Vector2Zero();
+		__player.position.x = EaseCubicInOut(GetTime() - __player.next_time.x, __player.last.x, __player.next.x - __player.last.x, __player.next_time.y);
+		__player.position.y = EaseCubicInOut(GetTime() - __player.next_time.x, __player.last.y, __player.next.y - __player.last.y, __player.next_time.y);
+
+		if (GetTime() >= (__player.next_time.x + __player.next_time.y))
+		{
+			__player.moving = false;
+			__player.position = __player.next;
+		}
 	}
 
-	__player.position = Vector2Add(__player.position, Vector2Scale(__player.velocity, frametime));
-
-	// apply deceleration
-	__player.velocity = Vector2ReduceValue(__player.velocity, 0.15f*frametime*PLAYER_ACC);
 }
 
-void DrawPlayer()
+void DrawPlayer(void)
 {
 	DrawCircleV(__player.position, PLAYER_RADIUS, colors[1]);
 }

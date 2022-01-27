@@ -8,10 +8,12 @@ bool Button(Rectangle rectangle, Color color, const char* label)
 	// modify color
 	bool hover = CheckCollisionPointRec(GetMousePosition(), rectangle);
 	if (hover)
+	{
 		if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
 			color.a *= 0.50f;
 		else
 			color.a *= 0.75f;
+	}
 
 	// display button
 	DrawRectangleRec(rectangle, color);
