@@ -6,6 +6,7 @@
 		"raymath.h": "c",
 		"bitset": "cpp",
 		"set": "cpp",
-		"__tree": "cpp"
+		"__tree": "cpp",
+		"player.h": "c"
 	}
 }

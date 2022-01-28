@@ -2,11 +2,13 @@
 
 #include "easings.h"
 #include "raymath.h"
+#include "state.h"
 #include <stdio.h> // DEBUG
 
 extern float frametime;
 extern player __player;
 extern Color colors[5];
+extern Sound hurt;
 
 // static Vector2 Vector2ReduceValue(Vector2 v, float value)
 // {
@@ -43,6 +45,8 @@ void SetPlayerDestination(Vector2 dest)
 void InitPlayer(Vector2 pos)
 {
 	__player.next = __player.position = pos;
+	__player.invulnerability = 0.0f;
+	__player.health = 3;
 }
 
 void UpdatePlayer(void)
@@ -81,9 +85,44 @@ void UpdatePlayer(void)
 		__player.next = __player.position;
 		// __player.acceleration = 0;
 	}
+
+	__player.invulnerability -= frametime;
+	if (__player.invulnerability < 0.0f)
+		__player.invulnerability = 0.0f;
 }
 
 void DrawPlayer(void)
 {
-	DrawCircleV(__player.position, PLAYER_RADIUS, colors[1]);
+	Color color = colors[1];
+
+	// emulate a kind of player blinking when they take damage
+	if (__player.invulnerability > 0.0f)
+	{
+		float i = __player.invulnerability;
+		if ((i < 0.25f) || (i > 0.5f && i < 0.75f) || (i > 1.0f && i < 1.25f) || (i > 1.5f && i < 1.75f))
+			color = colors[4];
+	}
+
+	DrawCircleV(__player.position, PLAYER_RADIUS, color);
+}
+
+Vector2 GetPlayerPos(void)
+{
+	return __player.position;
+}
+
+void HurtPlayer(void)
+{
+	__player.health--;
+	if (__player.health == 0)
+		ChangeGameState(GAMESTATE_lose);
+	else
+		__player.invulnerability = PLAYER_INVULNERABILITY_TIME;
+
+	PlaySound(hurt);
+}
+
+bool IsPlayerVulnerable(void)
+{
+	return __player.invulnerability <= 0.0f;
 }

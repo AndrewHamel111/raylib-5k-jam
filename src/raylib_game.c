@@ -45,6 +45,7 @@ Color colors[5] = { {0}, {0}, {0}, {0}, {0} };
 bool mute = false;
 int level = 0;
 ObstacleSet currentObstacleSet = {0};
+float levelStartTime;
 
 //----------------------------------------------------------------------------------
 // Resources
@@ -54,6 +55,7 @@ typedef enum SongName {
 	NIGHTCLUB, TOWN, DONTCRASH, EVADER, TECHBG, HENCHMEN
 } SongName;
 Texture2D atlas;
+Sound hurt;
 
 //----------------------------------------------------------------------------------
 // Functions Declaration
@@ -160,15 +162,15 @@ static void UpdateDrawFrame(void)
 
 static void LoadResources(void)
 {
-    // Load global data (assets that must be available in all screens, i.e. font)
-    // music = LoadMusicStream("resources/ambient.ogg");
-
 	bgm[0] = LoadMusicStream("resources/nightclub.ogg");
 	bgm[1] = LoadMusicStream("resources/town.ogg");
 	bgm[2] = LoadMusicStream("resources/dontcrash.ogg");
 	bgm[3] = LoadMusicStream("resources/evader.ogg");
 	bgm[4] = LoadMusicStream("resources/techbg.ogg");
 	bgm[5] = LoadMusicStream("resources/henchmen.ogg");
+
+	atlas = LoadTexture("resources/atlas.png");
+	hurt = LoadSound("resources/hurt.wav");
 
 	// other intialization
 	SetColorPalette(0);
@@ -177,15 +179,15 @@ static void LoadResources(void)
 		24, 24, 24, 24,
 		NPATCH_NINE_PATCH
 	};
-	atlas = LoadTexture("resources/atlas.png");
 }
 
 static void UnloadResources(void)
 {
-    UnloadMusicStream(music);
-
-	for(int i = 0; i < 5; i++)
+	for(int i = 0; i < 6; i++)
 		UnloadMusicStream(bgm[i]);
+
+	UnloadTexture(atlas);
+	UnloadSound(hurt);
 }
 
 void DrawEnvironment(void)
@@ -213,6 +215,8 @@ static void InitGame(void)
 {
 	InitPlayer((Vector2){screenWidth/2, screenHeight/2});
 
+	levelStartTime = GetTime();
+
 	currentObstacleSet = CreateObstacleSet(NULL, 0, 100, 1);
 	float currentSpeed = GetSpeed();
 	for(int i = 0; i < 96; i++)
@@ -224,5 +228,11 @@ static void InitGame(void)
 
 static float GetSpeed(void)
 {
-	return (level == 1) ? 250.0f : ((level == 2) ? 325.0f : 400.0f);
+	float time = GetTime() - levelStartTime;
+	float tmax = 120.0f;
+	if (time > tmax)
+		time = tmax;
+
+	float mult = (time / tmax) + 1.0f;
+	return (level == 1) ? (250.0f * mult) : ((level == 2) ? (325.0f * mult) : (400.0f * mult));
 }

@@ -3,6 +3,7 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "constants.h"
+#include "player.h"
 
 #include <stdlib.h>
 #include <time.h>
@@ -42,6 +43,38 @@ void UpdateObstacle(Obstacle* obstacle, float speed)
 			obstacle->moving.delta *= -1.0f;
 		}
 		obstacle->pos = Vector2Lerp(obstacle->moving.start, obstacle->moving.end, obstacle->moving.t);
+	}
+
+	if (!IsPlayerVulnerable()) return;
+
+	Vector2 playerpos = GetPlayerPos();
+	bool check = false;
+	if (obstacle->shape == OB_rectangle)
+	{
+		Rectangle rec = (Rectangle){
+			obstacle->pos.x - obstacle->rectangle.size.x/2,
+			obstacle->pos.y - obstacle->rectangle.size.y/2,
+			obstacle->rectangle.size.x,
+			obstacle->rectangle.size.y
+		};
+		if (CheckCollisionCircleRec(playerpos, PLAYER_RADIUS, rec))
+			check = true;
+	}
+	else if (obstacle->shape == OB_triangle)
+	{
+		//TODO replace this with proper triangle collision
+		if (CheckCollisionCircles(playerpos, PLAYER_RADIUS, obstacle->pos, obstacle->triangle.radius*0.66f))
+			check = true;
+	}
+	else if (obstacle->shape == OB_circle)
+	{
+		if (CheckCollisionCircles(playerpos, PLAYER_RADIUS, obstacle->pos, obstacle->circle.radius))
+			check = true;
+	}
+	
+	if (check)
+	{
+		HurtPlayer();
 	}
 }
 
@@ -115,9 +148,9 @@ void DrawObstacleSet(ObstacleSet set)
 void AddObstacle(ObstacleSet* set, float speed)
 {
 	set->obstacles[0].pos.x = screenWidth;
-	if (set->lastindex >= (set->length - 4))
+	if (set->lastindex >= (set->length - 15))
 	{
-		// set has no more room, extend it or something
+		// set has very limited room and the appropriate obstacle must be chosen
 	}
 	else
 	{
@@ -135,7 +168,12 @@ void AddObstacle(ObstacleSet* set, float speed)
 		else
 			o.pos.x = prev.pos.x + (speed + (2*OBSTACLE_SPACING));
 
-		int r = rand() % 3;
+		int r = rand() % 6;
+		/*	DESIGNING OBSTACLES
+
+		use set->obstacles[(*i)++] = to add extra pieces early. the last set->obstacles[(*i)] call doesn't increment because we want the value at i to be the last valid index.
+
+		*/
 		switch(r)
 		{
 			case 0:
@@ -180,17 +218,63 @@ void AddObstacle(ObstacleSet* set, float speed)
 				else
 				{
 					o.moving.end = (Vector2){
-						GetRandomValue(o.pos.x, o.pos.x + (speed * OBSTACLE_SPACING)),
+						GetRandomValue(o.pos.x, o.pos.x + (speed + OBSTACLE_SPACING)),
 						GetRandomValue(150, screenHeight - 150)
 					};
 				}
 				break;
-			// case 3:
-			// 	break;
-			// case 4:
-			// 	break;
-			// case 5:
-			// 	break;
+			case 3: // mini hallway
+				o.pos.y = 150;
+				o.shape = OB_rectangle;
+				o.rectangle.size = (Vector2){50, 100};
+				o.type = OB_static;
+				set->obstacles[(*i)++] = o;
+
+				o.pos.x += (OBSTACLE_SPACING + speed)/2;
+				o.pos.y = screenHeight - 150;
+				set->obstacles[(*i)++] = o;
+
+				o.pos.x += (OBSTACLE_SPACING + speed)/2;
+				o.pos.y = GetRandomValue(screenHeight/2 - 50, screenHeight/2 + 50);
+				o.rectangle.size.y *= 2;
+				set->obstacles[(*i)++] = o;
+
+				o.pos.x += (OBSTACLE_SPACING + speed)/2;
+				o.pos.y = 150;
+				o.rectangle.size = (Vector2){50, 100};
+				set->obstacles[(*i)++] = o;
+
+				o.pos.y = screenHeight - 150;
+				break;
+			case 4: // big chungus triangle
+				o.pos.y = screenWidth/2;
+				o.shape = OB_triangle;
+				o.triangle.radius = screenHeight*0.4f;
+				o.type = OB_rotating;
+				o.rotating.rotation = 0;
+				o.rotating.rotation_speed = 180.0f;
+				if (!(rand() % 5))
+					o.rotating.rotation_speed = GetRandomValue(90.0f, 360.0f);
+				break;
+			case 5: // triangle starfield
+
+				o.shape = OB_triangle;
+				o.type = OB_rotating;
+				o.rotating.rotation_speed = GetRandomValue(45.0f, 90.0f + 45.0f);
+				int starcount = 5 * (rand() % 3);
+				for(int j = 0; j < starcount; j++)
+				{
+					if (j != 0) // for all but first star
+					{
+						set->obstacles[(*i)++] = o;
+						o.pos.x += (OBSTACLE_SPACING + speed)/3;
+					}
+
+					o.pos.y = GetRandomValue(150, screenHeight - 150);
+					o.rotating.rotation = GetRandomValue(0, 359.0f);
+					o.triangle.radius = GetRandomValue(10, 40);
+				}
+				break;
 			// case 6:
 			// 	break;
 			// case 7:
