@@ -1,6 +1,8 @@
 #ifndef ENVIRONMENT_H_
 #define ENVIRONMENT_H_
 
+#include "raylib.h"
+
 typedef struct Obstacle
 {
 	Vector2 pos;
@@ -46,7 +48,7 @@ typedef struct Obstacle
 	};
 } Obstacle;
 
-void UpdateObstacle(Obstacle* obstacle);
+void UpdateObstacle(Obstacle* obstacle, float speed);
 void DrawObstacle(Obstacle obstacle);
 
 typedef struct ObstacleSet
@@ -61,6 +63,6 @@ ObstacleSet CreateObstacleSet(Obstacle obstacles[], int obstaclecount, int setle
 void UpdateObstacleSet(ObstacleSet* set, float speed);
 void DrawObstacleSet(ObstacleSet set);
 
-void AddObstacle(ObstacleSet* set);
+void AddObstacle(ObstacleSet* set, float speed);
 
 #endif

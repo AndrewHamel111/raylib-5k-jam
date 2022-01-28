@@ -27,6 +27,7 @@
 #include "buttons.h"
 #include "menu.h"
 #include "state.h"
+#include "environment.h"
 
 //----------------------------------------------------------------------------------
 // Global Variables Definition
@@ -42,7 +43,8 @@ player __player = {0};
 /** | colors[0] environment | colors[1] player | colors[2] NONE | colors[3] NONE | colors[4] background | */
 Color colors[5] = { {0}, {0}, {0}, {0}, {0} };
 bool mute = false;
-int level;
+int level = 0;
+ObstacleSet currentObstacleSet = {0};
 
 //----------------------------------------------------------------------------------
 // Resources
@@ -65,6 +67,7 @@ void UpdateEnvironment(void);
 void ChangeMusic(int trackno);
 
 static void InitGame(void);
+static float GetSpeed(void);
 
 int main(void)
 {
@@ -187,6 +190,7 @@ static void UnloadResources(void)
 
 void DrawEnvironment(void)
 {
+	DrawObstacleSet(currentObstacleSet);
 	DrawRectangle(0,0,screenWidth, 100, colors[0]);
 	DrawRectangle(0,screenHeight-100,screenWidth, 100, colors[0]);
 }
@@ -194,6 +198,8 @@ void DrawEnvironment(void)
 void UpdateEnvironment(void)
 {
 	// TODO make the game
+	float currentSpeed = GetSpeed();
+	UpdateObstacleSet(&currentObstacleSet, currentSpeed);
 }
 
 void ChangeMusic(int trackno)
@@ -207,6 +213,16 @@ static void InitGame(void)
 {
 	InitPlayer((Vector2){screenWidth/2, screenHeight/2});
 
+	currentObstacleSet = CreateObstacleSet(NULL, 0, 100, 1);
+	float currentSpeed = GetSpeed();
+	for(int i = 0; i < 96; i++)
+		AddObstacle(&currentObstacleSet, currentSpeed);
+
 	ChangeGameState(GAMESTATE_menu);
 	level = 0; // not in a level
+}
+
+static float GetSpeed(void)
+{
+	return (level == 1) ? 250.0f : ((level == 2) ? 325.0f : 400.0f);
 }

@@ -7,7 +7,8 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define OBSTACLE_SPACING 0.5f
+#define OBSTACLE_SPACING 1.0f
+#define OBSTACLE_SPACING_ABS 800.0f
 
 extern Color colors[5];
 extern float frametime;
@@ -58,7 +59,7 @@ void DrawObstacle(Obstacle obstacle)
 	if(obstacle.shape == OB_rectangle)
 	{
 		Rectangle rec = {obstacle.pos.x, obstacle.pos.y, obstacle.rectangle.size.x, obstacle.rectangle.size.y};
-		Vector2 origin = {rec.width, rec.height};
+		Vector2 origin = {rec.width/2, rec.height/2};
 		DrawRectanglePro(rec, origin, rotation, color);
 	}
 	else if (obstacle.shape == OB_triangle)
@@ -69,6 +70,8 @@ void DrawObstacle(Obstacle obstacle)
 	{
 		DrawCircleV(obstacle.pos, obstacle.circle.radius, color);
 	}
+
+	DrawCircleV(obstacle.pos, 5, RED);
 }
 
 static Obstacle EmptyObstacle(void)
@@ -92,6 +95,8 @@ ObstacleSet CreateObstacleSet(Obstacle obstacles[], int obstaclecount, int setle
 	for(int i = set.lastindex + 1; i < setlength; i++)
 		set.obstacles[i] = EmptyObstacle();
 
+	set.obstacles[0].pos.x = screenWidth;
+
 	return set;
 }
 
@@ -109,22 +114,26 @@ void DrawObstacleSet(ObstacleSet set)
 
 void AddObstacle(ObstacleSet* set, float speed)
 {
+	set->obstacles[0].pos.x = screenWidth;
 	if (set->lastindex >= (set->length - 4))
 	{
 		// set has no more room, extend it or something
 	}
 	else
 	{
-		Obstacle prev = set->obstacles[set->lastindex];
-		set->lastindex++;
-		int i = set->lastindex;
+		int* i = &(set->lastindex);
+		Obstacle prev = set->obstacles[(*i)++];
 
+		// if (*i - 1 <= 0)
+		// {
+		// 	set->obstacles[*i].pos.x = screenWidth + OBSTACLE_SPACING;
+		// }
 		Obstacle o = EmptyObstacle();
 
-		if (rand() % 4)
-			o.pos.x = prev.pos.x + (speed * OBSTACLE_SPACING);
+		if (rand() % 12)
+			o.pos.x = prev.pos.x + (speed + OBSTACLE_SPACING);
 		else
-			o.pos.x = prev.pos.x + (speed * 2.0f * OBSTACLE_SPACING);
+			o.pos.x = prev.pos.x + (speed + (2*OBSTACLE_SPACING));
 
 		int r = rand() % 3;
 		switch(r)
@@ -134,27 +143,20 @@ void AddObstacle(ObstacleSet* set, float speed)
 				{
 					o.pos.y = screenHeight/2;
 					o.shape = OB_rectangle;
-					o.rectangle.size = (Vector2){50,300};
+					o.rectangle.size = (Vector2){50,200};
 					o.type = OB_static;
 				}
 				else
 				{
 					// adds 2 objects instead of 1
-					o.pos.y = 150;
+					o.pos.y = 200+75/2;
 					o.shape = OB_rectangle;
-					o.rectangle.size = (Vector2){50,100};
+					o.rectangle.size = (Vector2){50,75};
 					o.type = OB_static;
 
-					set->obstacles[i] = o;
+					set->obstacles[(*i)++] = o;
 
-					o.pos.y = screenHeight - 150;
-					if (!(rand() % 3))
-					{
-						set->obstacles[i] = o;
-						
-						o.pos.y = screenHeight/2;
-						o.rectangle.size.y *= 1.66f;
-					}
+					o.pos.y = screenHeight-200-75/2;
 				}
 				break;
 			case 1:
@@ -166,7 +168,7 @@ void AddObstacle(ObstacleSet* set, float speed)
 			case 2:
 				o.pos.y = GetRandomValue(150, screenHeight - 150);
 				o.shape = OB_circle;
-				o.circle.radius = GetRandomValue(50,100);
+				o.circle.radius = GetRandomValue(15,50);
 				o.type = OB_moving;
 				o.moving.t = 0.0f;
 				o.moving.delta = 1.0f;
@@ -205,6 +207,6 @@ void AddObstacle(ObstacleSet* set, float speed)
 			// 	break;
 		}
 
-		set->obstacles[i] = o;
+		set->obstacles[*i] = o;
 	}
 }

@@ -382,7 +382,8 @@ PROJECT_SOURCE_FILES ?= \
 	player.c \
 	buttons.c \
 	state.c \
-	menu.c
+	menu.c \
+	environment.c
 
 # Define all object files from source files
 OBJS = $(patsubst %.c, %.o, $(PROJECT_SOURCE_FILES))
