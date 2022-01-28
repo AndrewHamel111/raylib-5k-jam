@@ -1,6 +1,11 @@
 {
 	"files.associations": {
 		"hamlib.h": "c",
-		"*.inc": "c"
+		"*.inc": "c",
+		"menu.h": "c",
+		"raymath.h": "c",
+		"bitset": "cpp",
+		"set": "cpp",
+		"__tree": "cpp"
 	}
 }

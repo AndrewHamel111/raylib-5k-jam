@@ -18,32 +18,40 @@
 #include "raylib.h"
 #include "raymath.h"
 #include <emscripten/emscripten.h>
+#include <time.h>
+#include <stdlib.h>
 
+#include "constants.h"
 #include "player.h"
 #include "colors.h"
 #include "buttons.h"
+#include "menu.h"
+#include "state.h"
 
 //----------------------------------------------------------------------------------
 // Global Variables Definition
 //----------------------------------------------------------------------------------
 // Constants
-const int screenWidth = 900;
-const int screenHeight = 675;
+NPatchInfo buttonNfo;
+const Rectangle muteButton = {screenWidth - 190, screenHeight - 90, 180, 80};
 
 // Variable
 Music music = { 0 };
 float frametime = 0.0f;
 player __player = {0};
+/** | colors[0] environment | colors[1] player | colors[2] NONE | colors[3] NONE | colors[4] background | */
 Color colors[5] = { {0}, {0}, {0}, {0}, {0} };
-bool mute = true;
+bool mute = false;
+int level;
 
 //----------------------------------------------------------------------------------
 // Resources
 //----------------------------------------------------------------------------------
-Music bgm[5] = { {0}, {0}, {0}, {0}, {0}};
-enum {
-	NIGHTCLUB, TOWN, DONTCRASH, EVADER, TECHBG
-} currentsong;
+Music bgm[6] = { {0}, {0}, {0}, {0}, {0}, {0}};
+typedef enum SongName {
+	NIGHTCLUB, TOWN, DONTCRASH, EVADER, TECHBG, HENCHMEN
+} SongName;
+Texture2D atlas;
 
 //----------------------------------------------------------------------------------
 // Functions Declaration
@@ -52,7 +60,9 @@ static void UpdateDrawFrame(void);          // Update and draw one frame
 static void LoadResources(void);
 static void UnloadResources(void);
 
-static void DrawEnvironment(void);
+void DrawEnvironment(void);
+void UpdateEnvironment(void);
+void ChangeMusic(int trackno);
 
 static void InitGame(void);
 
@@ -60,7 +70,8 @@ int main(void)
 {
     // Initialization
     //---------------------------------------------------------
-    InitWindow(screenWidth, screenHeight, "raylib-5k-jam");
+    srand(time(0));
+	InitWindow(screenWidth, screenHeight, "raylib-5k-jam");
 
     InitAudioDevice();      // Initialize audio device
 
@@ -68,9 +79,10 @@ int main(void)
 
 	InitGame();
 
-	music = bgm[1];
     SetMusicVolume(music, 1.0f);
-    PlayMusicStream(music);
+	// music = bgm[1];
+    // PlayMusicStream(music);
+	ChangeMusic(1);
 
     emscripten_set_main_loop(UpdateDrawFrame, 60, 1); // Attach main loop
 
@@ -91,46 +103,53 @@ int main(void)
 // Update and draw game frame
 static void UpdateDrawFrame(void)
 {
+    // Update
+    //----------------------------------------------------------------------------------
+	Vector2 volumes = GetVolume();
+    UpdateMusicStream(music);
+	frametime = GetFrameTime();
+	
 	if (mute)
 	{
 		SetMusicVolume(music, 0.0f);
 	}
 	else
 	{
-		SetMusicVolume(music, 1.0f);
+		SetMusicVolume(music, volumes.x);
 	}
 
-    // Update
-    //----------------------------------------------------------------------------------
-    UpdateMusicStream(music);
-	frametime = GetFrameTime();
-	UpdatePlayer();
+	// update buttons
+	ButtonToggle(muteButton, colors[2], "MUTE", false, &mute);
 
-	Vector2 dest = GetMousePosition();
-	if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
-		SetPlayerDestination(dest);
-	else if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
+	GameState gamestate = GetGameState();
+	switch(gamestate)
 	{
-		if (!CheckCollisionPointCircle(dest, __player.next, PLAYER_RADIUS))
-		{
-			SetPlayerDestination(dest);
-		}
+		case GAMESTATE_menu: MenuMainMenu(false); break;
+		case GAMESTATE_play: Game(false); break;
+		case GAMESTATE_lose: MenuLoseScreen(false); break;
+		case GAMESTATE_win: MenuWinScreen(false); break;
+		case GAMESTATE_settings: MenuSettings(false); break;
 	}
 
     // Draw
     //----------------------------------------------------------------------------------
     BeginDrawing();
 
-        ClearBackground(colors[4]);
+		switch(gamestate)
+		{
+			case GAMESTATE_menu: 	MenuMainMenu(true); break;
+			case GAMESTATE_play: 	Game(true); 		break;
+			case GAMESTATE_lose: 	MenuLoseScreen(true); break;
+			case GAMESTATE_win: 	MenuWinScreen(true); break;
+			case GAMESTATE_settings: MenuSettings(true); break;
+		}
+        // ClearBackground(colors[4]);
 
-		DrawEnvironment();
+		// DrawEnvironment();
+		// DrawPlayer();
+		// DrawText(TextFormat("player_acc %.1f", __player.acceleration), 10, 10, 20, BLACK);
 
-		DrawPlayer();
-
-		DrawText(TextFormat("x %.1f y %.1f _x %.1f _y %.1f", __player.last.x, __player.last.y, __player.next.x, __player.last.y), 10, 10, 20, BLACK);
-
-		if(Button((Rectangle){screenWidth - 190, screenHeight - 90, 180, 80}, colors[2], "MUTE"))
-			mute = !mute;
+		ButtonToggle(muteButton, colors[2], "MUTE", true, &mute);
 
     EndDrawing();
     //----------------------------------------------------------------------------------
@@ -139,16 +158,23 @@ static void UpdateDrawFrame(void)
 static void LoadResources(void)
 {
     // Load global data (assets that must be available in all screens, i.e. font)
-    music = LoadMusicStream("resources/ambient.ogg");
+    // music = LoadMusicStream("resources/ambient.ogg");
 
 	bgm[0] = LoadMusicStream("resources/nightclub.ogg");
 	bgm[1] = LoadMusicStream("resources/town.ogg");
 	bgm[2] = LoadMusicStream("resources/dontcrash.ogg");
 	bgm[3] = LoadMusicStream("resources/evader.ogg");
 	bgm[4] = LoadMusicStream("resources/techbg.ogg");
+	bgm[5] = LoadMusicStream("resources/henchmen.ogg");
 
 	// other intialization
 	SetColorPalette(0);
+	buttonNfo = (NPatchInfo){
+		(Rectangle){0,0,49,49},
+		24, 24, 24, 24,
+		NPATCH_NINE_PATCH
+	};
+	atlas = LoadTexture("resources/atlas.png");
 }
 
 static void UnloadResources(void)
@@ -159,15 +185,28 @@ static void UnloadResources(void)
 		UnloadMusicStream(bgm[i]);
 }
 
-static void DrawEnvironment(void)
+void DrawEnvironment(void)
 {
 	DrawRectangle(0,0,screenWidth, 100, colors[0]);
 	DrawRectangle(0,screenHeight-100,screenWidth, 100, colors[0]);
+}
+
+void UpdateEnvironment(void)
+{
+	// TODO make the game
+}
+
+void ChangeMusic(int trackno)
+{
+	StopMusicStream(music);
+	music = bgm[trackno];
+	PlayMusicStream(music);
 }
 
 static void InitGame(void)
 {
 	InitPlayer((Vector2){screenWidth/2, screenHeight/2});
 
-
+	ChangeGameState(GAMESTATE_menu);
+	level = 0; // not in a level
 }
